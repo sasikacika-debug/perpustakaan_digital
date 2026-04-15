@@ -3,9 +3,14 @@
 @section('title', 'Laporan - Kepala Perpustakaan')
 
 @section('content')
-    <div class="mb-4">
-        <h4 class="mb-2">Laporan Perpustakaan</h4>
-        <p class="text-muted">Ringkasan lengkap statistik, transaksi, dan denda perpustakaan untuk periode berjalan.</p>
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h4 class="mb-2">Laporan Perpustakaan</h4>
+            <p class="text-muted">Ringkasan lengkap statistik, transaksi, dan denda perpustakaan untuk periode berjalan.</p>
+        </div>
+        <div class="no-print">
+            <button type="button" class="btn btn-primary" onclick="window.print()">Cetak Laporan</button>
+        </div>
     </div>
 
     <!-- Primary Stats -->
@@ -94,6 +99,7 @@
                             <th>Jatuh Tempo</th>
                             <th>Dikembalikan</th>
                             <th>Denda</th>
+                            <th>Status Denda</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -124,10 +130,23 @@
                                         <span class="text-muted">-</span>
                                     @endif
                                 </td>
+                                <td>
+                                    @if($loan->fine > 0)
+                                        @if($loan->fine_status === 'unpaid')
+                                            <span class="badge bg-danger">Belum Bayar</span>
+                                        @elseif($loan->fine_status === 'paid')
+                                            <span class="badge bg-warning">Menunggu Konfirmasi</span>
+                                        @elseif($loan->fine_status === 'confirmed')
+                                            <span class="badge bg-success">Sudah Bayar</span>
+                                        @endif
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center text-muted py-4">Belum ada transaksi peminjaman.</td>
+                                <td colspan="8" class="text-center text-muted py-4">Belum ada transaksi peminjaman.</td>
                             </tr>
                         @endforelse
                     </tbody>

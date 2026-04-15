@@ -10,7 +10,7 @@
     <div class="modal fade" id="addBookModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form method="POST" action="{{ route('petugas.books.store') }}">
+                <form method="POST" action="{{ route('petugas.books.store') }}" enctype="multipart/form-data">
                     @csrf
                     <div class="modal-header">
                         <h5 class="modal-title">Tambah Buku</h5>
@@ -46,6 +46,14 @@
                             <label>Total Stok</label>
                             <input name="total_stock" type="number" class="form-control" value="1" min="0" required>
                         </div>
+                        <div class="mb-3">
+                            <label>Sinopsis</label>
+                            <textarea name="description" class="form-control" rows="4" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label>Cover Buku</label>
+                            <input name="cover_image" type="file" class="form-control" accept="image/*" required>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -80,7 +88,7 @@
             <div class="modal fade" id="editBookModal{{ $book->id }}" tabindex="-1">
                 <div class="modal-dialog">
                     <div class="modal-content">
-                        <form method="POST" action="{{ route('petugas.books.update', $book->id) }}">
+                        <form method="POST" action="{{ route('petugas.books.update', $book->id) }}" enctype="multipart/form-data">
                             @csrf @method('PUT')
                             <div class="modal-header">
                                 <h5 class="modal-title">Edit Buku</h5>
@@ -114,6 +122,17 @@
                                 <div class="mb-3">
                                     <label>Total Stok</label>
                                     <input name="total_stock" type="number" class="form-control" value="{{ $book->total_stock }}" min="0" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label>Sinopsis</label>
+                                    <textarea name="description" class="form-control" rows="4" required>{{ $book->description }}</textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label>Cover Buku</label>
+                                    <input name="cover_image" type="file" class="form-control" accept="image/*">
+                                    @if($book->cover_image)
+                                        <img src="{{ asset('book_covers/' . $book->cover_image) }}" alt="Cover {{ $book->title }}" class="img-fluid mt-2" style="max-height:120px;">
+                                    @endif
                                 </div>
                             </div>
                             <div class="modal-footer">

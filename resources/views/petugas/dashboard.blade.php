@@ -12,6 +12,7 @@
             <a href="{{ route('petugas.pengajuan') }}" class="btn btn-outline-primary">Lihat Peminjaman</a>
             <a href="{{ route('petugas.pengembalian') }}" class="btn btn-outline-success">Proses Pengembalian</a>
             <a href="{{ route('petugas.books') }}" class="btn btn-outline-secondary">Daftar Buku</a>
+            <a href="{{ route('petugas.categories') }}" class="btn btn-outline-warning">Kategori</a>
         </div>
     </div>
 

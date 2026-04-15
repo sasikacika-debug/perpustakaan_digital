@@ -177,4 +177,3 @@ class KepalaController extends Controller
         ));
     }
 }
-

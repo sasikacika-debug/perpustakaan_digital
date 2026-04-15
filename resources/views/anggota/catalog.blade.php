@@ -42,13 +42,19 @@
         @forelse($books as $book)
             <div class="col-md-6 col-lg-4 col-xl-3">
                 <div class="card h-100 shadow-sm border-0 overflow-hidden">
+                    <img src="{{ $book->cover_url }}" class="card-img-top" alt="Cover {{ $book->title }}" style="height:220px; object-fit:cover;">
                     <div class="card-body d-flex flex-column">
                         <h6 class="card-title mb-2 flex-grow-0">{{ $book->title }}</h6>
                         <p class="text-muted small mb-2">oleh {{ $book->author }}</p>
                         <div class="mb-3">
                             <span class="badge bg-info">{{ $book->category->name }}</span>
                         </div>
+                        <div class="mb-2">
+                            <small class="text-muted">Penerbit: {{ $book->publisher ?? '-' }}</small><br>
+                            <small class="text-muted">Tahun: {{ $book->year ?? '-' }}</small>
+                        </div>
                         <div class="mt-auto">
+                            <a href="{{ route('anggota.book.detail', $book->id) }}" class="btn btn-outline-primary btn-sm w-100 mb-2">Detail Buku</a>
                             <div class="mb-3">
                                 @if($book->available_stock > 0)
                                     <div class="text-success fw-bold">Tersedia: {{ $book->available_stock }}</div>

@@ -31,9 +31,12 @@ Route::get('/dashboard', function () {
 Route::get('/anggota/dashboard', [AnggotaController::class, 'dashboard'])->name('anggota.dashboard');
 Route::get('/anggota/riwayat', [AnggotaController::class, 'history'])->name('anggota.history');
 Route::get('/anggota/buku', [AnggotaController::class, 'catalog'])->name('anggota.catalog');
+Route::get('/anggota/buku/{book}', [AnggotaController::class, 'bookDetail'])->name('anggota.book.detail');
 Route::get('/anggota/profile', [AnggotaController::class, 'profile'])->name('anggota.profile');
 Route::post('/anggota/borrow/{book}', [AnggotaController::class, 'borrow'])->name('anggota.borrow');
 Route::post('/anggota/return/{loan}', [AnggotaController::class, 'return'])->name('anggota.return');
+Route::post('/anggota/submit-return/{loan}', [AnggotaController::class, 'submitReturn'])->name('anggota.submit_return');
+Route::post('/anggota/pay-fine/{loan}', [AnggotaController::class, 'payFine'])->name('anggota.pay_fine');
 
 // Petugas
 Route::get('/petugas/dashboard', [PetugasController::class, 'dashboard'])->name('petugas.dashboard');
@@ -42,6 +45,8 @@ Route::post('/petugas/pengajuan/{loan}/confirm', [PetugasController::class, 'con
 Route::get('/petugas/riwayat-peminjaman', [PetugasController::class, 'loanHistory'])->name('petugas.riwayat_peminjaman');
 Route::get('/petugas/pengembalian', [PetugasController::class, 'returns'])->name('petugas.pengembalian');
 Route::post('/petugas/pengembalian/{loan}/confirm', [PetugasController::class, 'confirmReturn'])->name('petugas.pengembalian.confirm');
+Route::post('/petugas/fine/{loan}/confirm', [PetugasController::class, 'confirmFinePayment'])->name('petugas.fine.confirm');
+Route::get('/petugas/fine/{loan}/receipt', [PetugasController::class, 'printFineReceipt'])->name('petugas.fine.receipt');
 Route::get('/petugas/riwayat-pengembalian', [PetugasController::class, 'returnHistory'])->name('petugas.riwayat_pengembalian');
 Route::get('/petugas/books', [PetugasController::class, 'books'])->name('petugas.books');
 Route::post('/petugas/books', [PetugasController::class, 'storeBook'])->name('petugas.books.store');

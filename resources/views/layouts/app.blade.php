@@ -6,6 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        @page {
+            size: A4 landscape;
+            margin: 10mm;
+        }
+
         body { background-color: #f4f6f9; }
         .sidebar { width: 260px; height: 100vh; position: fixed; background: linear-gradient(180deg, #1e293b, #0f172a); color: white; }
         .sidebar h4 { padding: 24px 20px 12px; margin: 0; font-size: 1.4rem; letter-spacing: 0.02em; }
@@ -21,6 +26,69 @@
         .dashboard-card .display-5 { font-size: 2.3rem; font-weight: 700; }
         .dashboard-actions .btn { min-width: 140px; }
         .table-small th, .table-small td { padding: 0.75rem 0.8rem; }
+
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 10mm;
+            }
+
+            html, body {
+                width: 100%;
+                background: #fff !important;
+                font-size: 11px;
+            }
+
+            body { background: #fff !important; }
+            .sidebar, .topbar, .btn, .alert, .dashboard-actions, .breadcrumb, .pagination { display: none !important; }
+            .main {
+                margin-left: 0 !important;
+                width: 100% !important;
+            }
+            .container, .container-fluid {
+                max-width: 100% !important;
+                width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .row {
+                --bs-gutter-x: 0.75rem;
+                --bs-gutter-y: 0.75rem;
+            }
+            [class*="col-"] {
+                break-inside: avoid;
+            }
+            .card, .card-body, .table { box-shadow: none !important; border: none !important; }
+            .card { border-radius: 0 !important; }
+            .card {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            .table { color: #000 !important; }
+            .table-responsive {
+                overflow: visible !important;
+            }
+            .table {
+                width: 100% !important;
+                table-layout: auto !important;
+                font-size: 10px;
+            }
+            .table th,
+            .table td {
+                white-space: normal !important;
+                word-break: break-word;
+                padding: 0.35rem 0.45rem !important;
+                vertical-align: top;
+            }
+            h1, h2, h3, h4, h5, h6 {
+                break-after: avoid;
+            }
+            p, tr, td, th, li, span {
+                break-inside: avoid;
+            }
+            .badge { box-shadow: none !important; }
+            .no-print { display: none !important; }
+        }
     </style>
 </head>
 <body>

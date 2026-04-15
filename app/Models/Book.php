@@ -17,6 +17,7 @@ class Book extends Model
         'total_stock',
         'available_stock',
         'description',
+        'cover_image',
     ];
 
     public function category()
@@ -27,5 +28,14 @@ class Book extends Model
     public function loans()
     {
         return $this->hasMany(Loan::class);
+    }
+
+    public function getCoverUrlAttribute()
+    {
+        if ($this->cover_image) {
+            return asset('book_covers/' . $this->cover_image);
+        }
+
+        return 'https://via.placeholder.com/220x320.png?text=Cover+Belum+Tersedia';
     }
 }

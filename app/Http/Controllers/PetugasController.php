@@ -101,18 +101,27 @@ class PetugasController extends Controller
             }
 
             $loan->status = 'approved';
+            $loan->rejection_reason = null;
             $loan->borrowed_at = now();
-            $loan->due_at = now()->addDays(7);
+            $loan->due_at = now()->addDays($loan->book->category->loan_days);
             $loan->save();
 
             return back()->with('success', 'Peminjaman disetujui.');
         }
 
         if ($loan->status === 'pending') {
+            $validated = $request->validate([
+                'rejection_reason' => 'required|string|min:5|max:1000',
+            ], [
+                'rejection_reason.required' => 'Alasan penolakan wajib diisi.',
+                'rejection_reason.min' => 'Alasan penolakan minimal 5 karakter.',
+            ]);
+
             $loan->status = 'rejected';
+            $loan->rejection_reason = $validated['rejection_reason'];
             $loan->save();
             $loan->book->increment('available_stock');
-            return back()->with('success', 'Peminjaman ditolak dan stok buku dikembalikan.');
+            return back()->with('success', 'Peminjaman ditolak. Alasan penolakan sudah dikirim ke anggota.');
         }
 
         return back()->with('error', 'Tidak dapat memproses status peminjaman ini.');
@@ -139,13 +148,58 @@ class PetugasController extends Controller
         }
 
         $loan->status = 'returned';
-        $loan->returned_at = now();
+        $loan->returned_at = $loan->requested_return_date;
         $loan->fine = $loan->calculateFine();
+        $loan->fine_status = $loan->fine > 0 ? 'unpaid' : 'confirmed';
         $loan->save();
 
         $loan->book->increment('available_stock');
 
         return back()->with('success', 'Pengembalian dikonfirmasi.');
+    }
+
+    public function confirmFinePayment(Request $request, $loanId)
+    {
+        $deny = $this->authorizeRole();
+        if ($deny) return $deny;
+
+        $loan = Loan::findOrFail($loanId);
+        $action = $request->input('action');
+
+        if ($loan->fine_status !== 'paid') {
+            return back()->with('error', 'Status denda tidak valid.');
+        }
+
+        if ($action === 'confirm') {
+            $loan->fine_status = 'confirmed';
+            $loan->save();
+            return redirect()->route('petugas.fine.receipt', $loan->id);
+        } elseif ($action === 'reject') {
+            $loan->fine_status = 'unpaid';
+            $loan->save();
+            return back()->with('success', 'Pembayaran denda ditolak.');
+        }
+
+        return back()->with('error', 'Aksi tidak valid.');
+    }
+
+    public function printFineReceipt($loanId)
+    {
+        $deny = $this->authorizeRole();
+        if ($deny) return $deny;
+
+        $loan = Loan::with(['user', 'book'])->findOrFail($loanId);
+
+        if ($loan->fine <= 0) {
+            return back()->with('error', 'Tidak ada pembayaran denda yang dapat dicetak.');
+        }
+
+        if ($loan->fine_status !== 'confirmed') {
+            $loan->fine_status = 'confirmed';
+            $loan->save();
+        }
+
+        return view('petugas.fine_receipt', compact('loan'));
     }
 
     public function books()
@@ -183,6 +237,7 @@ class PetugasController extends Controller
         $data = $request->validate([
             'name' => 'required|unique:categories,name',
             'description' => 'nullable|string',
+            'loan_days' => 'required|integer|min:1|max:365',
         ]);
 
         Category::create($data);
@@ -199,6 +254,7 @@ class PetugasController extends Controller
         $data = $request->validate([
             'name' => 'required|unique:categories,name,' . $categoryId,
             'description' => 'nullable|string',
+            'loan_days' => 'required|integer|min:1|max:365',
         ]);
 
         $category->update($data);
@@ -232,7 +288,20 @@ class PetugasController extends Controller
             'year' => 'nullable|digits:4',
             'category_id' => 'required|exists:categories,id',
             'total_stock' => 'required|integer|min:0',
+            'description' => 'required|string',
+            'cover_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
+
+        if ($request->hasFile('cover_image')) {
+            $cover = $request->file('cover_image');
+            $folder = public_path('book_covers');
+            if (!file_exists($folder)) {
+                mkdir($folder, 0755, true);
+            }
+            $fileName = time() . '_' . uniqid() . '.' . $cover->getClientOriginalExtension();
+            $cover->move($folder, $fileName);
+            $data['cover_image'] = $fileName;
+        }
 
         $data['available_stock'] = $data['total_stock'];
         Book::create($data);
@@ -254,11 +323,33 @@ class PetugasController extends Controller
             'year' => 'nullable|digits:4',
             'category_id' => 'required|exists:categories,id',
             'total_stock' => 'required|integer|min:0',
+            'description' => 'required|string',
+            'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        $oldStock = $book->total_stock;
+        $loanedCount = $book->total_stock - $book->available_stock;
+        if ($data['total_stock'] < $loanedCount) {
+            return back()->with('error', 'Total stok tidak boleh kurang dari jumlah buku yang sedang dipinjam.');
+        }
+
+        if ($request->hasFile('cover_image')) {
+            $cover = $request->file('cover_image');
+            $folder = public_path('book_covers');
+            if (!file_exists($folder)) {
+                mkdir($folder, 0755, true);
+            }
+            $fileName = time() . '_' . uniqid() . '.' . $cover->getClientOriginalExtension();
+            $cover->move($folder, $fileName);
+
+            if ($book->cover_image && file_exists(public_path('book_covers/' . $book->cover_image))) {
+                unlink(public_path('book_covers/' . $book->cover_image));
+            }
+
+            $data['cover_image'] = $fileName;
+        }
+
         $book->update($data);
-        $book->available_stock += ($data['total_stock'] - $oldStock);
+        $book->available_stock = $data['total_stock'] - $loanedCount;
         $book->save();
 
         return back()->with('success', 'Buku berhasil diupdate.');
@@ -275,8 +366,11 @@ class PetugasController extends Controller
             return back()->with('error', 'Buku sedang dipinjam, tidak dapat dihapus.');
         }
 
+        if ($book->cover_image && file_exists(public_path('book_covers/' . $book->cover_image))) {
+            unlink(public_path('book_covers/' . $book->cover_image));
+        }
+
         $book->delete();
         return back()->with('success', 'Buku berhasil dihapus.');
     }
 }
-

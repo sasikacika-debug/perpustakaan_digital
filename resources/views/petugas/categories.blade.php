@@ -20,6 +20,7 @@
                             <th style="width: 60px;">No</th>
                             <th>Nama</th>
                             <th>Deskripsi</th>
+                            <th>Lama Pinjaman</th>
                             <th style="width: 180px;">Aksi</th>
                         </tr>
                     </thead>
@@ -29,6 +30,7 @@
                             <td>{{ $idx + 1 }}</td>
                             <td>{{ $cat->name }}</td>
                             <td>{{ $cat->description ?: '-' }}</td>
+                            <td>{{ $cat->loan_days }} hari</td>
                             <td>
                                 <button class="btn btn-sm btn-outline-warning me-1" data-bs-toggle="modal" data-bs-target="#editCategoryModal{{ $cat->id }}">Edit</button>
                                 <form method="POST" action="{{ route('petugas.categories.delete', $cat->id) }}" class="d-inline" onsubmit="return confirm('Hapus kategori ini?');">
@@ -40,7 +42,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="text-center py-4">Belum ada kategori. Silakan tambah kategori baru.</td>
+                            <td colspan="5" class="text-center py-4">Belum ada kategori. Silakan tambah kategori baru.</td>
                         </tr>
                     @endforelse
                     </tbody>
@@ -67,6 +69,10 @@
                         <div class="mb-3">
                             <label class="form-label">Deskripsi</label>
                             <textarea name="description" class="form-control" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Lama Pinjaman (hari)</label>
+                            <input name="loan_days" type="number" class="form-control" value="7" min="1" max="365" required>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -97,6 +103,10 @@
                             <div class="mb-3">
                                 <label class="form-label">Deskripsi</label>
                                 <textarea name="description" class="form-control" rows="3">{{ $cat->description }}</textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Lama Pinjaman (hari)</label>
+                                <input name="loan_days" type="number" class="form-control" value="{{ $cat->loan_days }}" min="1" max="365" required>
                             </div>
                         </div>
                         <div class="modal-footer">

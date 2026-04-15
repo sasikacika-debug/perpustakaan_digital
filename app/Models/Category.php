@@ -10,6 +10,7 @@ class Category extends Model
     protected $fillable = [
         'name',
         'description',
+        'loan_days',
     ];
 
     public function books()
